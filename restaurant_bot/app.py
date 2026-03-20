@@ -150,7 +150,7 @@ def generate_pdf(name, datetime_slot, guests, phone):
     print(f"✅ PDF generated: {filename}")
     return filename
 
-def background_tasks(name, dt, guests, phone, sender):
+def background_tasks(name, dt, guests, phone, sender, host_url):
     try:
         # 1. Save to sheets
         save_to_sheets(name, dt, guests, phone)
@@ -158,7 +158,9 @@ def background_tasks(name, dt, guests, phone, sender):
         # 2. Generate PDF
         pdf_path = generate_pdf(name, dt, guests, phone)
         pdf_filename = os.path.basename(pdf_path)
-        pdf_url = f"{NGROK_URL}/receipts/{pdf_filename}"
+        
+        # Use dynamic host URL instead of NGROK_URL env var
+        pdf_url = f"{host_url}/receipts/{pdf_filename}"
 
         # 3. Small wait for file to be ready
         time.sleep(2)
@@ -189,6 +191,10 @@ def serve_receipt(filename):
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
+    host_url = request.host_url.rstrip('/')
+    if "onrender.com" in host_url and host_url.startswith("http://"):
+        host_url = host_url.replace("http://", "https://")
+        
     incoming_msg = request.form.get("Body", "").strip()
     sender = request.form.get("From")
     phone = sender.replace("whatsapp:", "").strip()
@@ -295,7 +301,7 @@ def webhook():
             # ⚡ Run heavy tasks in background
             thread = threading.Thread(
                 target=background_tasks,
-                args=(name, dt, guests, phone, sender)
+                args=(name, dt, guests, phone, sender, host_url)
             )
             thread.daemon = True
             thread.start()
