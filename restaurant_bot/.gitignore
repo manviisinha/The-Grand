@@ -1,0 +1,20 @@
+# Environment Variables
+.env
+
+# Credentials
+credentials.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# PDF generation artifacts
+receipt_*.pdf
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
