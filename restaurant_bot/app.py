@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-app = Flask(__name__, static_folder=r"D:\Whatsapp\restaurant_bot")
+app = Flask(__name__, static_folder=".")
 
 # ===== SECURE CREDENTIALS (Loaded from .env) =====
 TWILIO_SID        = os.environ.get("TWILIO_SID", "")
@@ -90,7 +90,7 @@ def delete_from_sheets(phone):
         return False, ""
 
 def generate_pdf(name, datetime_slot, guests, phone):
-    filename = rf"D:\Whatsapp\restaurant_bot\receipt_{name.replace(' ', '_')}.pdf"
+    filename = f"receipt_{name.replace(' ', '_')}.pdf"
     doc = SimpleDocTemplate(filename, pagesize=A4)
     styles = getSampleStyleSheet()
     elements = []
@@ -182,7 +182,7 @@ def background_tasks(name, dt, guests, phone, sender):
 
 @app.route("/receipts/<filename>")
 def serve_receipt(filename):
-    filepath = os.path.join(r"D:\Whatsapp\restaurant_bot", filename)
+    filepath = os.path.join(os.getcwd(), filename)
     if os.path.exists(filepath):
         return send_file(filepath, mimetype="application/pdf")
     return "File not found", 404
