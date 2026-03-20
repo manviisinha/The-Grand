@@ -89,8 +89,11 @@ def delete_from_sheets(phone):
         print(f"❌ Sheets delete error: {e}")
         return False, ""
 
+import re
+
 def generate_pdf(name, datetime_slot, guests, phone):
-    filename = f"receipt_{name.replace(' ', '_')}.pdf"
+    clean_name = re.sub(r'[^a-zA-Z0-9]', '_', name)
+    filename = f"receipt_{clean_name}.pdf"
     doc = SimpleDocTemplate(filename, pagesize=A4)
     styles = getSampleStyleSheet()
     elements = []
@@ -166,9 +169,13 @@ def background_tasks(name, dt, guests, phone, sender, host_url):
         time.sleep(2)
 
         # 4. Send PDF to user
+        bot_number = TWILIO_NUMBER
+        if bot_number and not bot_number.startswith("whatsapp:"):
+            bot_number = f"whatsapp:{bot_number}"
+            
         twilio_client.messages.create(
             media_url=[pdf_url],
-            from_=TWILIO_NUMBER,
+            from_=bot_number,
             to=sender
         )
         print(f"✅ PDF sent to: {sender}")
