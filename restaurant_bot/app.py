@@ -12,6 +12,7 @@ from datetime import datetime
 import os
 import threading
 import time
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -38,7 +39,20 @@ def get_sheet():
             "https://spreadsheets.google.com/feeds",
             "https://www.googleapis.com/auth/drive"
         ]
-        creds = ServiceAccountCredentials.from_json_keyfile_name(CREDS_FILE, scope)
+        
+        # In production (Render/Heroku), load from a raw JSON environment variable
+        env_creds = os.environ.get("GOOGLE_CREDS_JSON")
+        if env_creds:
+            try:
+                creds_dict = json.loads(env_creds)
+                creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+            except Exception as e:
+                print(f"Failed to parse GOOGLE_CREDS_JSON from environment: {e}")
+                raise e
+        else:
+            # Fallback to local file for testing
+            creds = ServiceAccountCredentials.from_json_keyfile_name(CREDS_FILE, scope)
+
         client = gspread.authorize(creds)
         _sheet_cache = client.open_by_key(SHEET_ID).sheet1
     return _sheet_cache
